@@ -2,6 +2,8 @@
 
 echo "Starting..."
 
+export RESTIC_HOST=${RESTIC_HOST:-${HOSTNAME}}
+
 # check for existance/sanity of repo
 restic snapshots &>/dev/null
 repo_status=$?

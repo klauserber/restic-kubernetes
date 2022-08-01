@@ -3,6 +3,8 @@ FROM restic/restic:latest
 ADD entry.sh /
 ADD backup.sh /
 ADD check.sh /
+ADD snapshots.sh /
+ADD restore.sh /
 
 ENV RESTIC_REPOSITORY "/repo"
 ENV RESTIC_PASSWORD ""
