@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export RESTIC_HOST=${RESTIC_HOST:-${HOSTNAME}}
+
 echo "Starting backup at $(date +"%Y-%m-%d %H:%M:%S")"
 start=`date +%s`
 

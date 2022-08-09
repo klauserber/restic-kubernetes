@@ -1,10 +1,6 @@
 FROM restic/restic:latest
 
-ADD entry.sh /
-ADD backup.sh /
-ADD check.sh /
-ADD snapshots.sh /
-ADD restore.sh /
+ADD scripts/* /
 
 ENV RESTIC_REPOSITORY "/repo"
 ENV RESTIC_PASSWORD ""
@@ -15,8 +11,15 @@ ENV RESTIC_FORGET_ARGS "--keep-last 7"
 ENV NICE_ADJUST "10"
 ENV IONICE_CLASS "2"
 ENV IONICE_PRIO "7"
+ENV RESTIC_PASSWORD "default_for_tests"
+ENV RESTIC_DATA_DIR "/data"
+ENV RESTIC_RESTORE "1"
+ENV RESTIC_RESTORE_SNAPSHOT "latest"
+ENV RESTIC_BACKUP_ON_EXIT "1"
 
 ENTRYPOINT ["/entry.sh"]
 
 # CMD is run after entrypoint script finishes setup
-CMD ["tail", "-fn0", "/var/log/cron.log"]
+# CMD ["tail", "-fn0", "/var/log/cron.log"]
+
+# CMD [ "infinity" ]
