@@ -1,4 +1,4 @@
-FROM restic/restic:latest
+FROM restic/restic:0.14.0
 
 ADD scripts/* /
 

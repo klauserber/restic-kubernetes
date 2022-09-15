@@ -15,6 +15,9 @@ export RESTIC_HOST=${RESTIC_HOST:-${HOSTNAME}}
 
 RESTORED_MARKER_FILE=${RESTIC_DATA_DIR}/restic-restored.txt
 
+# unlock at startup
+restic unlock
+
 # check for existance/sanity of repo
 restic snapshots &>/dev/null
 repo_status=$?
@@ -34,7 +37,7 @@ fi
 if [ ${RESTIC_RESTORE} == 1 ]; then
   if [ ! -f ${RESTORED_MARKER_FILE} ]; then
     echo "Restore is requested and the file '${RESTORED_MARKER_FILE}' is not present -> going to restore."
-    /restore.sh ${RESTIC_RESTORE_SNAPSHOT} --target / 
+    /restore.sh ${RESTIC_RESTORE_SNAPSHOT} --target /
     echo "
       The presents of this file shows, that this volume was initialy restored.
       Removing this file leads to a full restore on the next container start." > ${RESTORED_MARKER_FILE}
