@@ -45,20 +45,24 @@ if [ ${RESTIC_RESTORE} == 1 ]; then
     echo "Restore is requested and the file '${RESTORED_MARKER_FILE}' is present -> skip restore."
   fi
 else
-    echo "Restore is not requested -> skip restore."
+  if [ ${RESTIC_INSTANT_BACKUP} == 1 ]; then
+    echo "Instant backup is requested -> going to backup."
+    /backup.sh
+  else
+    echo "Continues backup is requested -> configure cron and keep running."
+
+    echo "${BACKUP_CRON} /backup.sh >> /var/log/cron.log 2>&1" > /var/spool/cron/crontabs/root
+    echo "${CHECK_CRON} /check.sh >> /var/log/cron.log 2>&1" >> /var/spool/cron/crontabs/root
+
+    # ensure file exists, default CMD is to tail this file
+    touch /var/log/cron.log
+
+    # start cron daemon
+    crond
+
+    tail -fn0 /var/log/cron.log &
+
+    echo "Container setup complete."
+    wait $!
+  fi
 fi
-
-echo "${BACKUP_CRON} /backup.sh >> /var/log/cron.log 2>&1" > /var/spool/cron/crontabs/root
-echo "${CHECK_CRON} /check.sh >> /var/log/cron.log 2>&1" >> /var/spool/cron/crontabs/root
-
-# ensure file exists, default CMD is to tail this file
-touch /var/log/cron.log
-
-
-# start cron daemon
-crond
-
-tail -fn0 /var/log/cron.log &
-
-echo "Container setup complete."
-wait $!
