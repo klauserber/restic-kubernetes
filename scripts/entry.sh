@@ -15,12 +15,19 @@ export RESTIC_HOST=${RESTIC_HOST:-${HOSTNAME}}
 
 RESTORED_MARKER_FILE=${RESTIC_DATA_DIR}/restic-restored.txt
 
-# unlock at startup
+echo "unlock at startup"
 restic unlock
 
-# check for existance/sanity of repo
+echo -n "check for existance/sanity of repo, status: "
 restic snapshots &>/dev/null
 repo_status=$?
+
+echo $repo_status
+
+if [ $repo_status != 0 ] && [ ${RESTIC_RESTORE} == 1 ]; then
+  echo "Restore is requested but the repository is not sane -> skip restore."
+  exit 0
+fi
 
 # initialize repo if it doesn't exist or is malformed
 if [ $repo_status != 0 ]; then
