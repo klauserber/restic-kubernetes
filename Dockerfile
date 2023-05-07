@@ -1,7 +1,10 @@
-FROM restic/restic:0.14.0
+FROM restic/restic:0.15.2
 
 ADD scripts/* /
 
+ARG IMAGE_VERSION=latest
+
+ENV IMAGE_VERSION ${IMAGE_VERSION}
 ENV RESTIC_REPOSITORY "/repo"
 ENV RESTIC_PASSWORD ""
 ENV BACKUP_CRON "00 */24 * * *"

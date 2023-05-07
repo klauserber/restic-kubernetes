@@ -9,7 +9,7 @@ if [ ${RESTIC_BACKUP_ON_EXIT} == 1 ]; then
   trap backup_on_exit SIGTERM
 fi
 
-echo "Starting..."
+echo "Starting... image version ${IMAGE_VERSION}"
 
 export RESTIC_HOST=${RESTIC_HOST:-${HOSTNAME}}
 
@@ -45,9 +45,6 @@ if [ ${RESTIC_RESTORE} == 1 ]; then
   if [ ! -f ${RESTORED_MARKER_FILE} ]; then
     echo "Restore is requested and the file '${RESTORED_MARKER_FILE}' is not present -> going to restore."
     /restore.sh ${RESTIC_RESTORE_SNAPSHOT} --target /
-    echo "
-      The presents of this file shows, that this volume was initialy restored.
-      Removing this file leads to a full restore on the next container start." > ${RESTORED_MARKER_FILE}
   else
     echo "Restore is requested and the file '${RESTORED_MARKER_FILE}' is present -> skip restore."
   fi
