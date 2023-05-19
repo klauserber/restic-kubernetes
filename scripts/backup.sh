@@ -1,12 +1,38 @@
 #!/bin/sh
 
-export RESTIC_HOST=${RESTIC_HOST:-${HOSTNAME}}
-RESTORED_MARKER_FILE=${RESTIC_DATA_DIR}/restic-restored.txt
+set -Eeou pipefail
+MARKED=false
+
+function finally {
+    echo "final cleanup"
+    if [ $MARKED == true ]; then
+        unmarkBackupInProgress
+    fi
+}
+
+trap finally EXIT SIGINT
+
+. init.inc.sh
 
 echo "Starting backup at $(date +"%Y-%m-%d %H:%M:%S") (image version ${IMAGE_VERSION}))"
-start=`date +%s`
+echo "Current dir: $(pwd)"
 
-nice -n ${NICE_ADJUST} ionice -c ${IONICE_CLASS} -n ${IONICE_PRIO} restic backup ${BACKUP_SOURCE} --host ${RESTIC_HOST}
+waitForRestoreCompleted
+
+exitIfBackupInProgress
+
+start=`date +%s`
+markBackupInProgress
+MARKED=true
+
+nice -n ${NICE_ADJUST} ionice -c ${IONICE_CLASS} -n ${IONICE_PRIO} \
+    restic backup ${BACKUP_SOURCE} \
+    --host ${RESTIC_HOST} \
+    --exclude ${RESTORE_IN_PROGRESS_MARKER_FILENAME} \
+    --exclude ${BACKUP_IN_PROGRESS_MARKER_FILENAME}
+
+sleep 3
+
 BACKUP_RESULT=$?
 if [[ $BACKUP_RESULT != 0 ]]; then
     echo "Backup failed with status ${BACKUP_RESULT}"
@@ -24,9 +50,7 @@ if [ -n "${RESTIC_FORGET_ARGS}" ]; then
     fi
 fi
 
-echo "
-  The presents of this file shows, that this volume was initialy restored.
-  Removing this file leads to a full restore on the next container start." > ${RESTORED_MARKER_FILE}
+markRestored
 
 end=`date +%s`
 echo "Finished backup at $(date +"%Y-%m-%d %H:%M:%S") after $((end-start)) seconds"

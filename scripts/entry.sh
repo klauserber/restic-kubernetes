@@ -55,8 +55,8 @@ else
   else
     echo "Continues backup is requested -> configure cron and keep running."
 
-    echo "${BACKUP_CRON} /backup.sh >> /var/log/cron.log 2>&1" > /var/spool/cron/crontabs/root
-    echo "${CHECK_CRON} /check.sh >> /var/log/cron.log 2>&1" >> /var/spool/cron/crontabs/root
+    echo "${BACKUP_CRON} cd / && /backup.sh >> /var/log/cron.log 2>&1" > /var/spool/cron/crontabs/root
+    echo "${CHECK_CRON} cd / && /check.sh >> /var/log/cron.log 2>&1" >> /var/spool/cron/crontabs/root
 
     # ensure file exists, default CMD is to tail this file
     touch /var/log/cron.log

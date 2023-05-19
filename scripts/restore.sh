@@ -1,17 +1,21 @@
 #!/bin/sh
 
-export RESTIC_HOST=${RESTIC_HOST:-${HOSTNAME}}
+. init.inc.sh
 
-RESTORED_MARKER_FILE=${RESTIC_DATA_DIR}/restic-restored.txt
-
-echo "Starting restore at $(date +"%Y-%m-%d %H:%M:%S") (image version ${IMAGE_VERSION}))"
 start=`date +%s`
 
+echo "Check if restore is already in progress"
+
+waitForRestoreCompletedAndExit
+
+markRestoreInProgress
+
+echo "Starting restore at $(date +"%Y-%m-%d %H:%M:%S") (image version ${IMAGE_VERSION}))"
 restic restore --host ${RESTIC_HOST} ${@}
 
-echo "
-  The presents of this file shows, that this volume was initialy restored.
-  Removing this file leads to a full restore on the next container start." > ${RESTORED_MARKER_FILE}
+markRestored
+
+unmarkRestoreInProgress
 
 end=`date +%s`
 echo "Finished restore at $(date +"%Y-%m-%d %H:%M:%S") after $((end-start)) seconds"

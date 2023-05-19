@@ -21,6 +21,8 @@ ENV RESTIC_RESTORE_SNAPSHOT "latest"
 ENV RESTIC_BACKUP_ON_EXIT "1"
 ENV RESTIC_INSTANT_BACKUP "0"
 
+WORKDIR /
+
 ENTRYPOINT ["/entry.sh"]
 
 # CMD is run after entrypoint script finishes setup
