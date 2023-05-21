@@ -4,8 +4,6 @@ export RESTIC_HOST=${RESTIC_HOST:-${HOSTNAME}}
 RESTORED_MARKER_FILE=${RESTIC_DATA_DIR}/restic-restored.txt
 RESTORE_IN_PROGRESS_MARKER_FILENAME=restic-restore-inprogress.txt
 RESTORE_IN_PROGRESS_MARKER_FILE=${RESTIC_DATA_DIR}/${RESTORE_IN_PROGRESS_MARKER_FILENAME}
-BACKUP_IN_PROGRESS_MARKER_FILENAME=restic-backup-inprogress.txt
-BACKUP_IN_PROGRESS_MARKER_FILE=${RESTIC_DATA_DIR}/${BACKUP_IN_PROGRESS_MARKER_FILENAME}
 
 RESTORED_TXT="
   The presents of this file shows, that this volume was initialy restored.
@@ -15,9 +13,6 @@ RESTORE_IN_PROGRESS_TXT="
   The presents of this file shows, that the restore process is currently running.
   Remove this file only if something went wrong during restore."
 
-BACKUP_IN_PROGRESS_TXT="
-  The presents of this file shows, that the backup process is currently running.
-  Remove this file only if something went wrong during backup."
 
 function markRestored {
   echo "${RESTORED_TXT}" > ${RESTORED_MARKER_FILE}
@@ -30,16 +25,6 @@ function markRestoreInProgress {
 function unmarkRestoreInProgress {
   if [ -f ${RESTORE_IN_PROGRESS_MARKER_FILE} ]; then
     rm ${RESTORE_IN_PROGRESS_MARKER_FILE}
-  fi
-}
-
-function markBackupInProgress {
-  echo "${BACKUP_IN_PROGRESS_TXT}" > ${BACKUP_IN_PROGRESS_MARKER_FILE}
-}
-
-function unmarkBackupInProgress {
-  if [ -f ${BACKUP_IN_PROGRESS_MARKER_FILE} ]; then
-    rm ${BACKUP_IN_PROGRESS_MARKER_FILE}
   fi
 }
 
@@ -63,12 +48,5 @@ function waitForRestoreCompleted {
       sleep 5
     done
     echo "Restore completed."
-  fi
-}
-
-function exitIfBackupInProgress {
-  if [ -f ${BACKUP_IN_PROGRESS_MARKER_FILE} ]; then
-    echo "Backup already in progress."
-    exit 0
   fi
 }
