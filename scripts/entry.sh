@@ -33,7 +33,7 @@ fi
 # initialize repo if it doesn't exist or is malformed
 if [ $repo_status != 0 ]; then
   echo "Initializing restic repository at '${RESTIC_REPOSITORY}'..."
-  ./restic init
+  restic init
   init_status=$?
 
   if [ $init_status != 0 ]; then
