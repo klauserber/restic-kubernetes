@@ -23,6 +23,16 @@ ENV RESTIC_INSTANT_BACKUP "0"
 
 WORKDIR /
 
+RUN apk add py3-pip --no-cache
+
+ARG RESTIC_EXPORTER_VERSION=1.2.2
+RUN set -e; \
+  mkdir /exporter; \
+  cd /exporter; \
+  wget -q https://raw.githubusercontent.com/ngosang/restic-exporter/${RESTIC_EXPORTER_VERSION}/requirements.txt; \
+  pip3 install -r requirements.txt; \
+  wget -q https://raw.githubusercontent.com/ngosang/restic-exporter/${RESTIC_EXPORTER_VERSION}/restic-exporter.py;
+
 ENTRYPOINT ["/entry.sh"]
 
 # CMD is run after entrypoint script finishes setup

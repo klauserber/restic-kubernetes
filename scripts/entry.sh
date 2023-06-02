@@ -68,6 +68,8 @@ else
     tail -fn0 /var/log/cron.log &
 
     echo "Container setup complete."
-    wait $!
+    
+    echo "Starting metrics exporter..."
+    ./exporter.sh
   fi
 fi
