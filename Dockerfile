@@ -1,7 +1,5 @@
 FROM restic/restic:0.15.2
 
-ADD scripts/* /
-
 ARG IMAGE_VERSION=latest
 
 ENV IMAGE_VERSION ${IMAGE_VERSION}
@@ -20,6 +18,7 @@ ENV RESTIC_RESTORE "0"
 ENV RESTIC_RESTORE_SNAPSHOT "latest"
 ENV RESTIC_BACKUP_ON_EXIT "1"
 ENV RESTIC_INSTANT_BACKUP "0"
+ENV REFRESH_INTERVAL "600"
 
 WORKDIR /
 
@@ -33,9 +32,6 @@ RUN set -e; \
   pip3 install -r requirements.txt; \
   wget -q https://raw.githubusercontent.com/ngosang/restic-exporter/${RESTIC_EXPORTER_VERSION}/restic-exporter.py;
 
+ADD scripts/* /
+
 ENTRYPOINT ["/entry.sh"]
-
-# CMD is run after entrypoint script finishes setup
-# CMD ["tail", "-fn0", "/var/log/cron.log"]
-
-# CMD [ "infinity" ]
