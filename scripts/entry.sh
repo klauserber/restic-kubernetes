@@ -64,12 +64,12 @@ else
 
     # start cron daemon
     crond
-
     tail -fn0 /var/log/cron.log &
 
-    echo "Container setup complete."
-    
     echo "Starting metrics exporter..."
-    ./exporter.sh
+    ./exporter.sh &
+
+    echo "Container setup complete."
+    wait
   fi
 fi
