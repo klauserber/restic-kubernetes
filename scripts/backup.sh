@@ -11,6 +11,29 @@ waitForRestoreCompleted
 
 start=`date +%s`
 
+# Define the directory containing the scripts
+dir="/pre-backup-scripts.d"
+
+echo "Running pre-backup scripts from $dir"
+
+# Check if the directory exists
+if [ -d "$dir" ]; then
+    # Change to the directory
+    cd "$dir"
+
+    # Loop over each script in the directory
+    for file in *.sh
+    do
+        # Ensure the script has execute permissions
+        chmod +x "$file"
+        echo "Running $file"    
+        # Execute the script
+        ./"$file"
+    done
+else
+    echo "Directory $dir does not exist"
+fi
+
 nice -n ${NICE_ADJUST} ionice -c ${IONICE_CLASS} -n ${IONICE_PRIO} \
     restic backup ${BACKUP_SOURCE} \
     --host ${RESTIC_HOST} \
