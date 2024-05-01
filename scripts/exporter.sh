@@ -1,6 +1,8 @@
 #!/bin/sh
 
 cd /exporter
+. ./venv/bin/activate
+
 echo -n $RESTIC_PASSWORD > restic_password
 
 export RESTIC_REPO_URL=$RESTIC_REPOSITORY

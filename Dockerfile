@@ -1,4 +1,6 @@
-FROM restic/restic:0.15.2
+FROM restic/restic:0.16.4
+
+ARG TARGETARCH=amd64
 
 ARG IMAGE_VERSION=latest
 
@@ -22,15 +24,26 @@ ENV REFRESH_INTERVAL "600"
 
 WORKDIR /
 
-RUN apk add py3-pip --no-cache
+RUN apk add py3-pip curl mysql-client --no-cache
 
-ARG RESTIC_EXPORTER_VERSION=1.2.2
+# ##versions: https://raw.githubusercontent.com/ngosang/restic-exporter
+ARG RESTIC_EXPORTER_VERSION=1.5.0
 RUN set -e; \
   mkdir /exporter; \
   cd /exporter; \
+  python3 -m venv ./venv; \
+  . ./venv/bin/activate; \
   wget -q https://raw.githubusercontent.com/ngosang/restic-exporter/${RESTIC_EXPORTER_VERSION}/requirements.txt; \
   pip3 install -r requirements.txt; \
   wget -q https://raw.githubusercontent.com/ngosang/restic-exporter/${RESTIC_EXPORTER_VERSION}/restic-exporter.py;
+
+# ##versions: https://github.com/kubernetes/kubernetes/releases
+ARG KUBECTL_VERSION=1.29.4
+RUN set -e; \
+    cd /tmp; \
+    curl -sLO "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl"; \
+    mv kubectl /usr/local/bin/; \
+    chmod +x /usr/local/bin/kubectl
 
 ADD scripts/* /
 
