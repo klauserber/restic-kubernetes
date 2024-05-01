@@ -24,7 +24,7 @@ ENV REFRESH_INTERVAL "600"
 
 WORKDIR /
 
-RUN apk add py3-pip curl mysql-client --no-cache
+RUN apk add py3-pip curl mysql-client mariadb-connector-c --no-cache
 
 # ##versions: https://raw.githubusercontent.com/ngosang/restic-exporter
 ARG RESTIC_EXPORTER_VERSION=1.5.0
