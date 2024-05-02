@@ -50,3 +50,31 @@ function waitForRestoreCompleted {
     echo "Restore completed."
   fi
 }
+
+function runScripts {
+  SUB_DIR=${1}
+  if [ -z "${SUB_DIR}" ]; then
+    echo "No sub directory given. Exiting."
+    exit 1
+  fi
+
+  # Define the directory containing the scripts
+  DIR="${RESTIC_SCRIPTS_DIR}/${SUB_DIR}"
+
+
+  # Check if the directory exists
+  if [ -d "${DIR}" ]; then
+      echo "Running scripts from ${DIR}"
+
+      # Change to the directory
+      cd "${DIR}"
+
+      # Loop over each script in the directory
+      for FILE in *.sh
+      do
+          echo "Running ${FILE}"    
+          sh ./"${FILE}"
+      done
+  fi
+
+}

@@ -11,25 +11,7 @@ waitForRestoreCompleted
 
 start=`date +%s`
 
-# Define the directory containing the scripts
-dir="/pre-backup-scripts.d"
-
-echo "Running pre-backup scripts from $dir"
-
-# Check if the directory exists
-if [ -d "$dir" ]; then
-    # Change to the directory
-    cd "$dir"
-
-    # Loop over each script in the directory
-    for file in *.sh
-    do
-        echo "Running $file"    
-        sh ./"$file"
-    done
-else
-    echo "Directory $dir does not exist"
-fi
+runScripts pre-backup.d
 
 nice -n ${NICE_ADJUST} ionice -c ${IONICE_CLASS} -n ${IONICE_PRIO} \
     restic backup ${BACKUP_SOURCE} \
@@ -59,3 +41,5 @@ markRestored
 
 end=`date +%s`
 echo "Finished backup at $(date +"%Y-%m-%d %H:%M:%S") after $((end-start)) seconds"
+
+runScripts post-backup.d
