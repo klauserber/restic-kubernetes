@@ -1,2 +1,2 @@
-VERSION=2.5.0
+VERSION=latest
 IMAGE_NAME=restic-kubernetes
