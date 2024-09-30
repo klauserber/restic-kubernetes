@@ -1,2 +1,3 @@
-VERSION=latest
+VERSION=2.5.1
 IMAGE_NAME=restic-kubernetes
+REGISTRY_NAME=docker.io
