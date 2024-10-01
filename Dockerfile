@@ -26,7 +26,7 @@ ENV RESTIC_MARKER_FILE_SUBDIR "/"
 
 WORKDIR /
 
-RUN apk add py3-pip curl mysql-client mariadb-connector-c --no-cache
+RUN apk add py3-pip curl mysql-client mariadb-connector-c tini --no-cache
 
 # ##versions: https://raw.githubusercontent.com/ngosang/restic-exporter
 ARG RESTIC_EXPORTER_VERSION=1.5.0
@@ -49,4 +49,4 @@ RUN set -e; \
 
 ADD scripts/* /
 
-ENTRYPOINT ["/entry.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/entry.sh"]
