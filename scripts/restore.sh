@@ -13,7 +13,7 @@ markRestoreInProgress
 runScripts pre-restore.d
 
 echo "Starting restore at $(date +"%Y-%m-%d %H:%M:%S") (image version ${IMAGE_VERSION}))"
-restic restore --host ${RESTIC_HOST} ${@}
+restic restore --host ${RESTIC_HOST} ${RESTIC_RESTORE_OPTIONS} ${@}
 
 markRestored
 

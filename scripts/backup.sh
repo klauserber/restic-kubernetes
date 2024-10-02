@@ -16,7 +16,8 @@ runScripts pre-backup.d
 nice -n ${NICE_ADJUST} ionice -c ${IONICE_CLASS} -n ${IONICE_PRIO} \
     restic backup ${BACKUP_SOURCE} \
     --host ${RESTIC_HOST} \
-    --exclude ${RESTORE_IN_PROGRESS_MARKER_FILENAME}
+    --exclude ${RESTORE_IN_PROGRESS_MARKER_FILENAME} \
+    ${RESTIC_BACKUP_OPTIONS}
 
 sleep 3
 
