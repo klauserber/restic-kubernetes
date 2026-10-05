@@ -1,3 +1,13 @@
+# ##versions: https://github.com/influxdata/influx-cli/releases
+# InfluxDB v2 CLI is not distributed as prebuilt binaries (no GitHub release assets,
+# dl.influxdata.com tarballs are gone, apt repo doesn't cover newer Ubuntu releases) -> build from the official CLI module
+ARG INFLUX_CLI_VERSION=2.8.0
+FROM golang:1.25 AS influx-cli
+ARG INFLUX_CLI_VERSION
+ENV CGO_ENABLED=0
+RUN go install -ldflags "-X main.version=v${INFLUX_CLI_VERSION} -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    github.com/influxdata/influx-cli/v2/cmd/influx@v${INFLUX_CLI_VERSION}
+
 FROM ubuntu:26.04
 
 ARG TARGETARCH=amd64
@@ -37,7 +47,6 @@ RUN apt-get update && apt-get install -y \
     mysql-client \
     tini \
     cron \
-    influxdb-client \
     && rm -rf /var/lib/apt/lists/*
 
 # ##versions: https://github.com/restic/restic/releases
@@ -71,6 +80,8 @@ RUN set -e; \
     curl -sLO "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl"; \
     mv kubectl /usr/local/bin/; \
     chmod +x /usr/local/bin/kubectl
+
+COPY --from=influx-cli /go/bin/influx /usr/local/bin/influx
 
 ADD scripts/* /
 

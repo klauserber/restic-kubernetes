@@ -13,7 +13,8 @@ Based on `ubuntu:26.04` (multi-arch: amd64/arm64):
 
 - restic (official binary, see `RESTIC_VERSION` in Dockerfile)
 - restic-exporter (Prometheus metrics, see `RESTIC_EXPORTER_VERSION` in Dockerfile)
-- kubectl, mysql-client, influxdb-client, cron, tini
+- InfluxDB v2 CLI (built from the official `influx-cli` module, see `INFLUX_CLI_VERSION` in Dockerfile)
+- kubectl, mysql-client, cron, tini
 
 ## Behavior
 
