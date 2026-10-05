@@ -1,8 +1,8 @@
 #!/bin/sh
 
-set -Eeou pipefail
+set -eu
 
-. init.inc.sh
+. ./init.inc.sh
 
 echo "Starting backup at $(date +"%Y-%m-%d %H:%M:%S") (image version ${IMAGE_VERSION}))"
 echo "Current dir: $(pwd)"
@@ -22,7 +22,7 @@ nice -n ${NICE_ADJUST} ionice -c ${IONICE_CLASS} -n ${IONICE_PRIO} \
 sleep 3
 
 BACKUP_RESULT=$?
-if [[ $BACKUP_RESULT != 0 ]]; then
+if [ $BACKUP_RESULT != 0 ]; then
     echo "Backup failed with status ${BACKUP_RESULT}"
     restic unlock
     exit 1
@@ -31,7 +31,7 @@ fi
 if [ -n "${RESTIC_FORGET_ARGS}" ]; then
     nice -n ${NICE_ADJUST} ionice -c ${IONICE_CLASS} -n ${IONICE_PRIO} restic forget ${RESTIC_FORGET_ARGS} --host ${RESTIC_HOST}
     FORGET_RESULT=$?
-    if [[ $FORGET_RESULT != 0 ]]; then
+    if [ $FORGET_RESULT != 0 ]; then
         echo "Snapshot pruning failed with status ${FORGET_RESULT}"
         restic unlock
         exit 1

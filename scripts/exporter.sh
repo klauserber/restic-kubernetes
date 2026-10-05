@@ -3,9 +3,8 @@
 cd /exporter
 . ./venv/bin/activate
 
-echo -n $RESTIC_PASSWORD > restic_password
-
-export RESTIC_REPO_URL=$RESTIC_REPOSITORY
-export RESTIC_REPO_PASSWORD_FILE=/exporter/restic_password
-
-python restic-exporter.py
+# v2.x reads RESTIC_REPOSITORY and RESTIC_PASSWORD(_FILE/_COMMAND) directly from the environment
+# RESTIC_HOST must not leak into the exporter: restic maps it to --host and would
+# filter stats to snapshots of this host only, breaking global metrics
+unset RESTIC_HOST
+python -u exporter.py

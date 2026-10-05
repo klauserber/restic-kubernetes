@@ -14,21 +14,21 @@ RESTORE_IN_PROGRESS_TXT="
   Remove this file only if something went wrong during restore."
 
 
-function markRestored {
+markRestored() {
   echo "${RESTORED_TXT}" > ${RESTORED_MARKER_FILE}
 }
 
-function markRestoreInProgress {
+markRestoreInProgress() {
   echo "${RESTORE_IN_PROGRESS_TXT}" > ${RESTORE_IN_PROGRESS_MARKER_FILE}
 }
 
-function unmarkRestoreInProgress {
+unmarkRestoreInProgress() {
   if [ -f ${RESTORE_IN_PROGRESS_MARKER_FILE} ]; then
     rm ${RESTORE_IN_PROGRESS_MARKER_FILE}
   fi
 }
 
-function waitForRestoreCompletedAndExit {
+waitForRestoreCompletedAndExit() {
   if [ -f ${RESTORE_IN_PROGRESS_MARKER_FILE} ]; then
     echo "Restore already in progress."
     while [ -f ${RESTORE_IN_PROGRESS_MARKER_FILE} ]; do
@@ -40,7 +40,7 @@ function waitForRestoreCompletedAndExit {
   fi
 }
 
-function waitForRestoreCompleted {
+waitForRestoreCompleted() {
   if [ -f ${RESTORE_IN_PROGRESS_MARKER_FILE} ]; then
     echo "Restore already in progress."
     while [ -f ${RESTORE_IN_PROGRESS_MARKER_FILE} ]; do
@@ -51,7 +51,7 @@ function waitForRestoreCompleted {
   fi
 }
 
-function runScripts {
+runScripts() {
   SUB_DIR=${1}
   if [ -z "${SUB_DIR}" ]; then
     echo "No sub directory given. Exiting."

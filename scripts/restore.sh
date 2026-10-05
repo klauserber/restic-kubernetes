@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. init.inc.sh
+. ./init.inc.sh
 
 start=`date +%s`
 
