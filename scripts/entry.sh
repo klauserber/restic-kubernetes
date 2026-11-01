@@ -24,13 +24,20 @@ repo_status=$?
 
 echo $repo_status
 
+# only exit code 10 means the repository does not exist yet; anything else
+# (network, credentials, lock) must not be mistaken for a new repository
+if [ $repo_status != 0 ] && [ $repo_status != 10 ]; then
+  echo "Repository '${RESTIC_REPOSITORY}' is not accessible (status $repo_status)."
+  exit 1
+fi
+
 if [ $repo_status != 0 ] && [ "${RESTIC_RESTORE}" = "1" ]; then
   echo "Restore is requested but the repository '${RESTIC_REPOSITORY}' does not exists, assuming starting from scratch -> skip restore."
   markRestored
   exit 0
 fi
 
-# initialize repo if it doesn't exist or is malformed
+# initialize repo if it doesn't exist
 if [ $repo_status != 0 ]; then
   echo "Initializing restic repository at '${RESTIC_REPOSITORY}'..."
   restic init
@@ -56,23 +63,21 @@ else
   else
     echo "Continues backup is requested -> configure cron and keep running."
 
-    # ensure file exists, default CMD is to tail this file
-    touch /var/log/cron.log
-
-    # install crontab via `crontab` (sets correct 0600 perms, cron refuses files
-    # written directly with e.g. `echo > /var/spool/cron/crontabs/root`);
-    # busybox crond passes the daemon's environment down to the jobs
+    # supercronic instead of busybox crond: it runs as any user (crond needs
+    # root), reads a plain crontab from a writable path, passes the container
+    # environment to the jobs and logs their output to stdout. It stays in the
+    # background so `wait` can be interrupted by SIGTERM and the backup-on-exit
+    # trap still runs.
     {
-      echo "${BACKUP_CRON} cd / && ./backup.sh >> /var/log/cron.log 2>&1"
-      echo "${CHECK_CRON} cd / && ./check.sh >> /var/log/cron.log 2>&1"
-    } | crontab -
+      echo "${BACKUP_CRON} cd / && ./backup.sh"
+      echo "${CHECK_CRON} cd / && ./check.sh"
+    } > ${CRONTAB_FILE}
+    supercronic -passthrough-logs ${CRONTAB_FILE} &
 
-    # start cron daemon
-    crond
-    tail -fn0 /var/log/cron.log &
-
-    echo "Starting metrics exporter..."
-    ./exporter.sh &
+    if [ "${RESTIC_EXPORTER_ENABLED}" = "1" ]; then
+      echo "Starting metrics exporter..."
+      ./exporter.sh &
+    fi
 
     echo "Container setup complete."
     wait
