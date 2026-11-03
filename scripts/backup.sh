@@ -13,28 +13,26 @@ start=`date +%s`
 
 runScripts pre-backup.d
 
+# "|| VAR=$?" keeps set -e from aborting right here, so the error handling below is actually reached
+BACKUP_RESULT=0
 nice -n ${NICE_ADJUST} ionice -c ${IONICE_CLASS} -n ${IONICE_PRIO} \
     restic backup ${BACKUP_SOURCE} \
     --host ${RESTIC_HOST} \
     --exclude ${RESTORE_IN_PROGRESS_MARKER_FILENAME} \
-    ${RESTIC_BACKUP_OPTIONS}
+    ${RESTIC_BACKUP_OPTIONS} || BACKUP_RESULT=$?
 
-sleep 3
-
-BACKUP_RESULT=$?
 if [ $BACKUP_RESULT != 0 ]; then
     echo "Backup failed with status ${BACKUP_RESULT}"
-    restic unlock
-    exit 1
+    exit $BACKUP_RESULT
 fi
 
 if [ -n "${RESTIC_FORGET_ARGS}" ]; then
-    nice -n ${NICE_ADJUST} ionice -c ${IONICE_CLASS} -n ${IONICE_PRIO} restic forget ${RESTIC_FORGET_ARGS} --host ${RESTIC_HOST}
-    FORGET_RESULT=$?
+    FORGET_RESULT=0
+    nice -n ${NICE_ADJUST} ionice -c ${IONICE_CLASS} -n ${IONICE_PRIO} \
+        restic forget ${RESTIC_FORGET_ARGS} --host ${RESTIC_HOST} || FORGET_RESULT=$?
     if [ $FORGET_RESULT != 0 ]; then
         echo "Snapshot pruning failed with status ${FORGET_RESULT}"
-        restic unlock
-        exit 1
+        exit $FORGET_RESULT
     fi
 fi
 

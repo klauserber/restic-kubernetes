@@ -7,7 +7,8 @@ backup_on_exit() {
   ./backup.sh
 }
 
-if [ "${RESTIC_BACKUP_ON_EXIT}" = "1" ]; then
+# no automatic backups at all (also not on exit) when continuous backup is disabled
+if [ "${RESTIC_BACKUP_ON_EXIT}" = "1" ] && [ "${RESTIC_CONT_BACKUP}" = "1" ]; then
   trap backup_on_exit SIGTERM
 fi
 
@@ -15,8 +16,15 @@ echo "Starting... image version ${IMAGE_VERSION}"
 
 export RESTIC_HOST=${RESTIC_HOST:-localhost}
 
-echo "unlock at startup"
-restic unlock
+# Without continuous backup this container only reads from the repository (e.g. a test system
+# restored from prod, possibly sharing the prod repository): never unlock, init or check it
+# automatically, as that would modify/interfere with the repository.
+if [ "${RESTIC_CONT_BACKUP}" = "1" ]; then
+  echo "unlock at startup"
+  restic unlock
+else
+  echo "Continuous backup is disabled -> skip unlock at startup"
+fi
 
 echo -n "check for existence/sanity of repo, status: "
 restic snapshots > /dev/null 2>&1
@@ -31,7 +39,9 @@ if [ $repo_status != 0 ] && [ "${RESTIC_RESTORE}" = "1" ]; then
 fi
 
 # initialize repo if it doesn't exist or is malformed
-if [ $repo_status != 0 ]; then
+if [ $repo_status != 0 ] && [ "${RESTIC_CONT_BACKUP}" != "1" ]; then
+  echo "Repository '${RESTIC_REPOSITORY}' is missing or not readable, continuous backup is disabled -> skip init."
+elif [ $repo_status != 0 ]; then
   echo "Initializing restic repository at '${RESTIC_REPOSITORY}'..."
   restic init
   init_status=$?
@@ -54,7 +64,7 @@ else
     echo "Instant backup is requested -> going to backup."
     ./backup.sh
   else
-    echo "Continues backup is requested -> configure cron and keep running."
+    echo "Configure cron and keep running."
 
     # ensure file exists, default CMD is to tail this file
     touch /var/log/cron.log
@@ -63,16 +73,26 @@ else
     # written directly with e.g. `echo > /var/spool/cron/crontabs/root`);
     # busybox crond passes the daemon's environment down to the jobs
     {
-      echo "${BACKUP_CRON} cd / && ./backup.sh >> /var/log/cron.log 2>&1"
-      echo "${CHECK_CRON} cd / && ./check.sh >> /var/log/cron.log 2>&1"
+      if [ "${RESTIC_CONT_BACKUP}" = "1" ]; then
+        echo "Continuous backup is enabled -> scheduling backups (${BACKUP_CRON})." >&2
+        echo "${BACKUP_CRON} cd / && ./backup.sh >> /var/log/cron.log 2>&1"
+        echo "${CHECK_CRON} cd / && ./check.sh >> /var/log/cron.log 2>&1"
+      else
+        echo "Continuous backup is disabled (RESTIC_CONT_BACKUP=${RESTIC_CONT_BACKUP}) -> no scheduled backup/check, on-demand only." >&2
+      fi
     } | crontab -
 
     # start cron daemon
     crond
     tail -fn0 /var/log/cron.log &
 
-    echo "Starting metrics exporter..."
-    ./exporter.sh &
+    # the exporter reads the repository continuously (stats, locks, check) -> not with disabled continuous backup
+    if [ "${RESTIC_CONT_BACKUP}" = "1" ]; then
+      echo "Starting metrics exporter..."
+      ./exporter.sh &
+    else
+      echo "Continuous backup is disabled -> not starting metrics exporter."
+    fi
 
     echo "Container setup complete."
     wait

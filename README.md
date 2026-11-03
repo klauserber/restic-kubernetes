@@ -19,12 +19,12 @@ Based on `restic/restic` (alpine, multi-arch: amd64/arm64) — restic comes from
 
 On startup the container:
 
-1. Runs `restic unlock`
-2. Checks the repository at `RESTIC_REPOSITORY` and initializes it (`restic init`) if it does not exist or is malformed
+1. Runs `restic unlock` (skipped with `RESTIC_CONT_BACKUP=0`)
+2. Checks the repository at `RESTIC_REPOSITORY` and initializes it (`restic init`) if it does not exist or is malformed (init skipped with `RESTIC_CONT_BACKUP=0`)
 3. Then, depending on configuration:
     - `RESTIC_RESTORE=1`: restores `RESTIC_RESTORE_SNAPSHOT` (default `latest`) into `/`, unless the marker file `${RESTIC_DATA_DIR}/restic-restored.txt` already exists (restore already happened). If the repository is missing, the marker is written instead and the container exits (fresh start, nothing to restore)
     - `RESTIC_INSTANT_BACKUP=1`: runs a single backup and exits
-    - default: starts the cron daemon with `BACKUP_CRON`/`CHECK_CRON`, tails `/var/log/cron.log` (default CMD), and starts the metrics exporter
+    - default: starts the cron daemon with `BACKUP_CRON`/`CHECK_CRON`, tails `/var/log/cron.log` (default CMD), and starts the metrics exporter. With `RESTIC_CONT_BACKUP=0` neither `restic unlock` nor `restic init` are run, no cron entries (`BACKUP_CRON`, `CHECK_CRON`) are installed and the metrics exporter is not started: an idle sidecar that leaves the repository untouched, for on-demand backups/restores (see below)
 
 Additional behavior:
 
@@ -52,7 +52,8 @@ Occasionally check container logs to see backup results.
 | `RESTIC_RESTORE` | `0` | `1`: restore on startup (see behavior above) |
 | `RESTIC_RESTORE_SNAPSHOT` | `latest` | Snapshot to restore |
 | `RESTIC_INSTANT_BACKUP` | `0` | `1`: run a single backup on startup and exit (no cron) |
-| `RESTIC_BACKUP_ON_EXIT` | `1` | `1`: run a final backup on SIGTERM |
+| `RESTIC_CONT_BACKUP` | `1` | `1`: continuous backup — scheduled backups via `BACKUP_CRON` (and the backup on exit). `0`: read-only/idle sidecar, e.g. for a test system restored from prod — no scheduled backups, no backup on exit, no `restic unlock` at startup, no `restic init` of a missing repository, no scheduled `restic check` (`CHECK_CRON`) and no metrics exporter (it would access the repository on every refresh, incl. `restic check`). The container just idles; use `kubectl exec` for on-demand backups/restores (see below) |
+| `RESTIC_BACKUP_ON_EXIT` | `1` | `1`: run a final backup on SIGTERM (only effective with `RESTIC_CONT_BACKUP=1`) |
 | `RESTIC_DATA_DIR` | `/data` | Where marker files are stored |
 | `RESTIC_MARKER_FILE_SUBDIR` | `/` | Subdirectory for marker files within `RESTIC_DATA_DIR` |
 | `RESTIC_SCRIPTS_DIR` | `/restic-scripts` | Directory containing hook script subdirectories |
